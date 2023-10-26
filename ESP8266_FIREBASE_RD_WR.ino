@@ -38,11 +38,11 @@ void setup() {
 
   config.api_key = api_key;
   config.database_url = db_url;
-  
-  if(Firebase.signUp(&config, &auth, "", "")){
+
+  if (Firebase.signUp(&config, &auth, "", "")) {
     Serial.print("sign up ok");
-    signupOK=true;  
-  }else{
+    signupOK = true;
+  } else {
     Serial.print(config.signer.signupError.message.c_str());
   }
 
@@ -52,17 +52,22 @@ void setup() {
 }
 
 void loop() {
-  if(Firebase.ready() && signupOK && (millis() - sendDataPrevMillis >2000 || sendDataPrevMillis == 0)){
+  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 2000 || sendDataPrevMillis == 0)) {
     sendDataPrevMillis = millis();
 
-    if(Firebase.RTDB.getBool(&fbdo, "/LED/digital")){
-      if(fbdo.dataType() == "boolean"){
+    if (Firebase.RTDB.getBool(&fbdo, "/LED/digital")) {
+      if (fbdo.dataType() == "boolean") {
         ledstatus = fbdo.boolData();
-        Serial.print("Successful READ from "+fbdo.dataPath()+": "+ledstatus+" {"+fbdo.dataType() +"}");
+        Serial.print("Successful READ from " + fbdo.dataPath() + ": " + ledstatus + " {" + fbdo.dataType() + "}");
         digitalWrite(redLedPin, ledstatus);
       }
-    }else{
-      Serial.print("FAILED: "+fbdo.errorReason());
+    } else {
+      Serial.print("READ FAILED: " + fbdo.errorReason());
+    }
+    if (Firebase.RTDB.setBool(&fbdo, "LED/digital", !ledstatus)) {
+      Serial.print("LED is written as " + ledstatus);
+    } else {
+      Serial.print("WRITE FAILED: " + fbdo.errorReason());
     }
   }
 }
